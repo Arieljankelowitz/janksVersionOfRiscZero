@@ -26,3 +26,5 @@ tauri = { version = "2.2.4", features = [] }
 tauri-plugin-log = "2.0.0-rc"
 bidding-core = { path = "../core" }
 host = { path = "../src-risc0/host" }
+k256 = { version = "0.13.1", features = ["ecdsa", "sha256"] }
+hex = "0.4.3"

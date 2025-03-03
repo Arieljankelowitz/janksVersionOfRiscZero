@@ -107,7 +107,9 @@ name = "app"
 version = "0.1.0"
 dependencies = [
  "bidding-core",
+ "hex",
  "host",
+ "k256",
  "log",
  "reqwest 0.11.27",
  "serde",
