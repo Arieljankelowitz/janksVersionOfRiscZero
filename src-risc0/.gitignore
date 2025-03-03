@@ -4,3 +4,6 @@ methods/guest/Cargo.lock
 target/
 core/target/
 core/Cargo.lock
+# Add ignored paths
+/core/target/
+*.pem

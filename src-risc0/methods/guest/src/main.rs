@@ -10,6 +10,11 @@ fn main() {
     let input: BidDetails  = env::read();
 
     // check balance is greater than bid
+    if input.bank_details.cert.balance < input.bid {
+        env::commit(&"Error: Insufficient balance to place bid.");
+        return;
+    }
+
 
     // verify banks sig on cert
     let verifying_key = VerifyingKey::from_encoded_point(&input.bank_details.bank_public_key).unwrap();
@@ -24,7 +29,7 @@ fn main() {
 
     // verify signed challenge on challenge
     let challenge = &input.challenge;
-    let signed_challenge = &input.signed_challenge; // No need for from_der()
+    let signed_challenge = &input.signed_challenge; 
 
     
 
@@ -43,7 +48,7 @@ let challenge_verification_result = match client_verifying_key.verify(challenge.
 
     let combined_response = format!(
         "{} | {}",
-        result, challenge_verification_result
+        result, challenge_verification_result,
     );
 
     // Write public output to the journal

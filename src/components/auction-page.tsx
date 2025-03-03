@@ -1,79 +1,119 @@
-import { useState } from "react"
-import { Card } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
+import React, { useState } from "react";
+import axios from "axios";
 
+export default function BankApp() {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [balance, setBalance] = useState("");
+  const [token, setToken] = useState(null);
+  const [receipts, setReceipts] = useState([]);
+  const [message, setMessage] = useState("");
 
-export default function AuctionPage() {
-  const [currentBid, setCurrentBid] = useState(10)
-  const [bidAmount, setBidAmount] = useState("")
-  const [error, setError] = useState("")
+  const handleSignup = async () => {
+    try {
+      const response = await axios.post("http://127.0.0.1:5000/api/signup", {
+        username,
+        password,
+        initial_balance: balance,
+      });
+      setMessage(response.data.message);
+      setToken(response.data.token);
+      fetchReceipts(response.data.token); // Fetch receipts after signup
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        setMessage(error.response?.data?.error || "Signup failed");
+      } else {
+        setMessage("An unknown error occurred");
+      }
+    }
+  };
 
-  const handleBid = (e: React.FormEvent) => {
-    e.preventDefault()
-    const amount = Number.parseFloat(bidAmount)
+  const handleLogin = async () => {
+    try {
+      const response = await axios.post("http://127.0.0.1:5000/api/login", {
+        username,
+        password,
+      });
+      setToken(response.data.token);
+      setMessage("Login successful");
+      fetchReceipts(response.data.token); // Fetch receipts after login
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        setMessage(error.response?.data?.error || "Login failed");
+      } else {
+        setMessage("An unknown error occurred");
+      }
+    }
+  };
 
-    if (isNaN(amount)) {
-      setError("Please enter a valid number")
-      return
+  const fetchReceipts = async (authToken = token) => {
+    if (!authToken) {
+      setMessage("You must be logged in to view receipts.");
+      return;
     }
 
-    if (amount <= currentBid) {
-      setError("Bid must be higher than current bid")
-      return
+    try {
+      const response = await axios.get("http://127.0.0.1:5000/api/receipts", {
+        headers: { Authorization: authToken },
+      });
+      setReceipts(response.data.receipts);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        setMessage(error.response?.data?.error || "Failed to fetch receipts");
+      } else {
+        setMessage("An unknown error occurred");
+      }
     }
-
-    setCurrentBid(amount)
-    setBidAmount("")
-    setError("")
-  }
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <Card className="w-full max-w-md p-6 space-y-6">
-        <div className="aspect-video relative rounded-lg overflow-hidden bg-gray-100">
-          <img src="/placeholder.svg" alt="Item for sale" className="object-cover" />
-        </div>
-
-        <div className="space-y-2">
-          <div className="text-center p-3 bg-gray-50 rounded-lg">
-            <p className="font-medium">Current Bid: ${currentBid.toFixed(2)}</p>
-          </div>
-          <div className="text-center p-3 bg-gray-50 rounded-lg">
-            <p className="font-medium">Time left: 2 days</p>
-          </div>
-        </div>
-
-        <form onSubmit={handleBid} className="space-y-4">
-          <div className="space-y-2">
-            <label htmlFor="bid" className="block text-sm font-medium">
-              Enter Bid:
-            </label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2">$</span>
-              <Input
-                id="bid"
-                type="number"
-                step="0.01"
-                min={currentBid + 0.01}
-                value={bidAmount}
-                onChange={(e) => setBidAmount(e.target.value)}
-                className="pl-6"
-                placeholder="Enter your bid amount"
-              />
-            </div>
-            {error && (
-              <p className="text-sm text-red-500" role="alert">
-                {error}
-              </p>
-            )}
-          </div>
-          <Button type="submit" className="w-full">
-            Place Bid
-          </Button>
-        </form>
-      </Card>
+    <div className="p-6 max-w-md mx-auto bg-white rounded-xl shadow-md space-y-4">
+      <h1 className="text-xl font-bold">Bank App</h1>
+      <input
+        type="text"
+        placeholder="Username"
+        className="border p-2 w-full"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+      />
+      <input
+        type="password"
+        placeholder="Password"
+        className="border p-2 w-full"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
+      <input
+        type="number"
+        placeholder="Initial Balance (Sign-up)"
+        className="border p-2 w-full"
+        value={balance}
+        onChange={(e) => setBalance(e.target.value)}
+      />
+      <button className="bg-blue-500 text-white p-2 rounded w-full" onClick={handleSignup}>
+        Sign Up
+      </button>
+      <button className="bg-green-500 text-white p-2 rounded w-full" onClick={handleLogin}>
+        Log In
+      </button>
+      {token && (
+        <button className="bg-gray-500 text-white p-2 rounded w-full" onClick={() => fetchReceipts()}>
+          View Receipts
+        </button>
+      )}
+      {message && <p className="text-red-500">{message}</p>}
+      <div>
+        <h2 className="text-lg font-semibold">Receipts</h2>
+        <ul>
+          {receipts.length > 0 ? (
+            receipts.map((r, index) => (
+              <li key={index} className="border p-2 my-1">{JSON.stringify(r)}</li>
+            ))
+          ) : (
+            <p className="text-gray-500">No receipts available.</p>
+          )}
+        </ul>
+      </div>
     </div>
-  )
+  );
 }
-
