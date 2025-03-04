@@ -6,6 +6,7 @@ import sqlite3
 import os
 from services.auction_services import get_all_auctions, get_auction, create_auction
 from services.challenge_services import create_challenge
+import verifier
 
 app = Flask(__name__)
 CORS(app)
@@ -19,7 +20,8 @@ init_db(DB_PATH)
 
 @app.route('/', methods=['GET'])
 def home():
-    return jsonify({"message": "sum"})
+    sum = verifier.sum_as_string(5, 2)
+    return jsonify({"message": sum})
 
 @app.route('/api/auction', methods=['POST'])
 def upload_auction():
