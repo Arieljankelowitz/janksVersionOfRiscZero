@@ -19,7 +19,7 @@ init_db(DB_PATH)
 
 @app.route('/', methods=['GET'])
 def home():
-    return jsonify({"message": "Server API is running"})
+    return jsonify({"message": "sum"})
 
 @app.route('/api/auction', methods=['POST'])
 def upload_auction():
@@ -89,6 +89,6 @@ def handle_place_bid(data):
         emit('error', {'message': 'Bid must be higher than current bid.'})
 
 if __name__ == '__main__':
-    print("Bank API starting on http://127.0.0.1:5000")
+    print("Auction API starting on http://127.0.0.1:5000")
     print("Database file:", os.path.abspath(DB_PATH))
     socketio.run(app, host='127.0.0.1', port=5000, debug=True)
