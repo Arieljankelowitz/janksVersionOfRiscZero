@@ -1,4 +1,5 @@
 use pyo3::prelude::*;
+use pyo3::exceptions::PyRuntimeError;
 use serde::{Serialize, Deserialize};
 use serde_json;
 use std::fs::File;
@@ -26,7 +27,7 @@ fn read_id_file() -> Result<[u32; 8], Box<dyn std::error::Error>> {
 }
 
 
-fn challenge_exists(db_path: &str, challenge: &str) -> Result<bool> {
+fn challenge_exists(db_path: &str, challenge: &str) -> Result<bool, rusqlite::Error> {
     let conn = Connection::open(db_path)?;
 
     let mut stmt = conn.prepare("SELECT EXISTS(SELECT 1 FROM challenges WHERE challenge = ?)")?;
@@ -36,24 +37,27 @@ fn challenge_exists(db_path: &str, challenge: &str) -> Result<bool> {
 }
 
 
-#[pyfunction]
-fn verify_receipt(reciept: Vec<u8>) -> PyResult<String> {
-    let guest_id = read_id_file()?
-    let receipt: Receipt = bincode::deserialize(&receipt_bytes).unwrap();
+// #[pyfunction]
+// fn verify_receipt(reciept: Vec<u8>) -> PyResult<String> {
+//     let guest_id = read_id_file()?;
+//     let receipt: Receipt = bincode::deserialize(&receipt_bytes).unwrap();
 
-    receipt
-        .verify(guest_id)
-        .unwrap();
+//     receipt
+//         .verify(guest_id)
+//         .unwrap();
     
-    let output: String = receipt.journal.decode().unwrap();
+//     let output: String = receipt.journal.decode().unwrap();
     
-    let is_valid_challenge = challenge_exists("../../auction.db", output.challenge)?;
-}
+//     let is_valid_challenge = challenge_exists("auction.db", output.challenge)?;
+// }
 
 /// Formats the sum of two numbers as string.
 #[pyfunction]
-fn sum_as_string(a: usize, b: usize) -> PyResult<String> {
-    Ok((a + b).to_string())
+fn sum_as_string(a: String) -> PyResult<bool> {
+    let exists = challenge_exists("auction.db", &a)
+        .map_err(|e| PyRuntimeError::new_err(format!("Database error: {}", e)))?;
+    
+    Ok(exists)
 }
 
 /// A Python module implemented in Rust.

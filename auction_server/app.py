@@ -20,7 +20,7 @@ init_db(DB_PATH)
 
 @app.route('/', methods=['GET'])
 def home():
-    sum = verifier.sum_as_string(5, 2)
+    sum = verifier.sum_as_string("yY4QbuXYeeJSrwVQh1nvl5VJ2OFjuCIg")
     return jsonify({"message": sum})
 
 @app.route('/api/auction', methods=['POST'])
