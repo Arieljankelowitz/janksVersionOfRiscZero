@@ -16,7 +16,7 @@ struct Data {
 
 fn read_id_file() -> Result<[u32; 8], Box<dyn std::error::Error>> {
     // Try to open the file
-    let file = File::open("path to file with ID.json")?;
+    let file = File::open("guest_id.json")?;
     let reader = BufReader::new(file);
 
     // Try to deserialize the content
@@ -37,32 +37,56 @@ fn challenge_exists(db_path: &str, challenge: &str) -> Result<bool, rusqlite::Er
 }
 
 
-// #[pyfunction]
-// fn verify_receipt(reciept: Vec<u8>) -> PyResult<String> {
-//     let guest_id = read_id_file()?;
-//     let receipt: Receipt = bincode::deserialize(&receipt_bytes).unwrap();
+#[pyfunction]
+fn verify_receipt(receipt_string: String) -> PyResult<u32> {
+    let guest_id = read_id_file()
+        .map_err(|e| PyRuntimeError::new_err(format!("IO error: {}", e)))?;
 
-//     receipt
-//         .verify(guest_id)
-//         .unwrap();
+    let receipt_bytes = hex::decode(&receipt_string)
+        .map_err(|e| PyRuntimeError::new_err(format!("Hex decode error: {}", e)))?;
+
+    let receipt: Receipt = bincode::deserialize(&receipt_bytes)
+        .map_err(|e| PyRuntimeError::new_err(format!("Deserialize error: {}", e)))?;
+
+    receipt
+        .verify(guest_id)
+        .map_err(|e| PyRuntimeError::new_err(format!("Verify error: {}", e)))?;
     
-//     let output: String = receipt.journal.decode().unwrap();
+    let output: u32 = receipt.journal.decode()
+        .map_err(|e| PyRuntimeError::new_err(format!("Decode error: {}", e)))?;
     
-//     let is_valid_challenge = challenge_exists("auction.db", output.challenge)?;
-// }
+    Ok(output)
+}
+
 
 /// Formats the sum of two numbers as string.
 #[pyfunction]
-fn sum_as_string(a: String) -> PyResult<bool> {
+fn test(a: String) -> PyResult<String> {
     let exists = challenge_exists("auction.db", &a)
         .map_err(|e| PyRuntimeError::new_err(format!("Database error: {}", e)))?;
-    
-    Ok(exists)
+
+    if exists {
+        let guest_id = read_id_file()
+            .map_err(|e| PyRuntimeError::new_err(format!("IO error: {}", e)))?;
+        
+        // Assuming guest_id is [u32; 8], convert to string
+        let guest_id_str = guest_id
+            .iter()
+            .map(|id| id.to_string())
+            .collect::<Vec<String>>()
+            .join(",");
+
+        Ok(guest_id_str)
+    } else {
+        Err(PyRuntimeError::new_err("Challenge does not exist"))
+    }
 }
+
 
 /// A Python module implemented in Rust.
 #[pymodule]
 fn verifier(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(sum_as_string, m)?)?;
+    m.add_function(wrap_pyfunction!(test, m)?)?;
+    m.add_function(wrap_pyfunction!(verify_receipt, m)?)?;
     Ok(())
 }

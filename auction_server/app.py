@@ -7,6 +7,7 @@ import os
 from services.auction_services import get_all_auctions, get_auction, create_auction
 from services.challenge_services import create_challenge
 import verifier
+from reciept import receipt
 
 app = Flask(__name__)
 CORS(app)
@@ -20,8 +21,9 @@ init_db(DB_PATH)
 
 @app.route('/', methods=['GET'])
 def home():
-    sum = verifier.sum_as_string("yY4QbuXYeeJSrwVQh1nvl5VJ2OFjuCIg")
-    return jsonify({"message": sum})
+    sum = verifier.test("yY4QbuXYeeJSrwVQh1nvl5VJ2OFjuCIg")
+    bid = verifier.verify_receipt(receipt)
+    return jsonify({"message": sum, "bid": bid})
 
 @app.route('/api/auction', methods=['POST'])
 def upload_auction():
