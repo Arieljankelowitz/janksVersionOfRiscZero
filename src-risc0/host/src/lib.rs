@@ -37,7 +37,7 @@ pub fn run_zkvm(details: BidDetails) -> Result<String, Box<dyn Error>> {
 
     // let output: ReceiptOutput = receipt.journal.decode().unwrap();
     
-    let receipt_bytes = bincode::serialize(&receipt).unwrap();
+    let receipt_bytes = bincode::serialize(&receipt)?;
     let receipt_string = hex::encode(&receipt_bytes);
 
     Ok(receipt_string)

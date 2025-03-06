@@ -45,8 +45,10 @@ async fn handle_fund_account(details: FundAccountDetails) -> Result<serde_json::
 // Define the existing Tauri command to handle the bid details
 #[tauri::command]
 fn handle_bid_details(details: BidDetails) -> String {
-    let bid_details: String = run_zkvm(details);  // Your existing ZKVM function
-    format!("The bid from the zkvm is: {}", bid_details)
+    match run_zkvm(details) {
+      Ok(val) => format!("Success: {}", val),
+      Err(e) => format!("Error: {}", e),  
+    }  
 }
 
 // The main entry point to run the Tauri app
