@@ -1,6 +1,7 @@
 import './App.css';
 import { useState } from 'react';
-import AuctionPage from './components/auction-page';
+import AuctionPage from './pages/auction-page';
+import React from 'react';
 
 function App() {
   return (
