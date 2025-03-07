@@ -14,6 +14,14 @@ struct Data {
     guest_id: [u32; 8],
 }
 
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+pub struct ReceiptOutput {
+    pub bid: u32,
+    pub challenge: String,
+    pub date: String, // Keep as String maybe change later prob not
+    pub bank_public_key: EncodedPoint,
+}
+
 fn read_id_file() -> Result<[u32; 8], Box<dyn std::error::Error>> {
     // Try to open the file
     let file = File::open("guest_id.json")?;
@@ -52,14 +60,15 @@ fn verify_receipt(receipt_string: String) -> PyResult<u32> {
         .verify(guest_id)
         .map_err(|e| PyRuntimeError::new_err(format!("Verify error: {}", e)))?;
     
-    let output: u32 = receipt.journal.decode()
+    let output: ReceiptOutput = receipt.journal.decode()
         .map_err(|e| PyRuntimeError::new_err(format!("Decode error: {}", e)))?;
+
+    let bid: u32 = output.bid;
     
-    Ok(output)
+    Ok(bid)
 }
 
 
-/// Formats the sum of two numbers as string.
 #[pyfunction]
 fn test(a: String) -> PyResult<String> {
     let exists = challenge_exists("auction.db", &a)
