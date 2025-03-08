@@ -38,7 +38,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     
     // verify date is today (maybe)
 
-    // output: challenge, date, bid, banks publick key
+    // output: challenge, date, bid, banks public key
     let output = ReceiptOutput {
         challenge: input.challenge.clone(),
         date: input.bank_details.cert.date.clone(),

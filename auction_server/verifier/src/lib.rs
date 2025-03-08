@@ -50,12 +50,13 @@ fn verify_receipt(receipt_string: String) -> PyResult<u32> {
     let guest_id = read_id_file()
         .map_err(|e| PyRuntimeError::new_err(format!("IO error: {}", e)))?;
 
+    // Parse Receipt
     let receipt_bytes = hex::decode(&receipt_string)
         .map_err(|e| PyRuntimeError::new_err(format!("Hex decode error: {}", e)))?;
 
     let receipt: Receipt = bincode::deserialize(&receipt_bytes)
         .map_err(|e| PyRuntimeError::new_err(format!("Deserialize error: {}", e)))?;
-
+    // Verify Receipt
     receipt
         .verify(guest_id)
         .map_err(|e| PyRuntimeError::new_err(format!("Verify error: {}", e)))?;

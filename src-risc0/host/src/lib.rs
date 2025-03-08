@@ -11,7 +11,7 @@ use bincode;
 use hex;
 use std::error::Error;
 
-
+ 
 pub fn run_zkvm(details: BidDetails) -> Result<String, Box<dyn Error>> {
     // For example:
     let input: BidDetails = details;
