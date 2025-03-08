@@ -1864,6 +1864,7 @@ name = "host"
 version = "0.1.0"
 dependencies = [
  "bidding-core",
+ "bincode",
  "hex",
  "k256",
  "methods",
