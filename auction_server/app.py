@@ -38,6 +38,10 @@ def upload_auction():
 
     return jsonify({'message': 'Auction created successfully'}), 201
 
+@app.route('/api/auction/<auction_id>', methods=['GET'])
+def get_auction_id(auction_id):
+    # Example response (Replace this with actual DB lookup)
+    return get_auction(DB_PATH, auction_id)
 
 # REST: Get all auctions
 @app.route('/api/auctions', methods=['GET'])
@@ -95,4 +99,4 @@ def handle_place_bid(data):
 if __name__ == '__main__':
     print("Auction API starting on http://127.0.0.1:5000")
     print("Database file:", os.path.abspath(DB_PATH))
-    socketio.run(app, host='127.0.0.1', port=5000, debug=True)
+    socketio.run(app, host='127.0.0.1', port=5001, debug=True)
