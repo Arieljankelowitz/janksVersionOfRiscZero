@@ -7,22 +7,11 @@ def init_db(DB_PATH):
     
     # Create auctions table if it doesn't exist
     cursor.execute('''
-    CREATE TABLE IF NOT EXISTS auctions (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
-        img_url TEXT NOT NULL,
-        description TEXT NOT NULL,
-        end_date TEXT NOT NULL,
-        bid REAL NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )
-    ''')
-
-    # Create challenges table if it doesn't exist
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS challenges (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        challenge TEXT NOT NULL,
+    CREATE TABLE IF NOT EXISTS users (
+        username TEXT PRIMARY KEY NOT NULL,
+        password TEXT NOT NULL,
+        public_key TEXT NOT NULL,
+        balance REAL NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     ''')

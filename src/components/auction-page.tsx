@@ -14,8 +14,14 @@ import {
 import { fetchAuction, fetchChallenge } from "@/services/auction-services"
 import { AuctionItem } from "@/types/auction-types"
 import { signChallenge } from "@/services/rust-services"
+import axios from "axios"
+import { Cert } from "@/types/bank-types"
 
-export default function AuctionPage() {
+interface AuctionPageProps {
+  username: string;
+}
+
+const AuctionPage: React.FC<AuctionPageProps> = ({ username }) => {
   const [currentBid, setCurrentBid] = useState(150)
   const [bidAmount, setBidAmount] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -26,6 +32,8 @@ export default function AuctionPage() {
   const [pendingBidAmount, setPendingBidAmount] = useState<number | null>(null)
   const [auctionData, setAuctionData] = useState<AuctionItem | null>(null)
   const [error, setError] = useState("");  // To show errors
+  const [cert, setCert] = useState<Cert | null>(null)
+  const bankServerUrl = "http://127.0.0.1:5000/api"
 
   useEffect(() => {
     const getAuctionData = async () => {
@@ -34,7 +42,13 @@ export default function AuctionPage() {
       setCurrentBid(data?.bid || 0)
     };
 
+    const getUserCert = async () => {
+      const response = await axios.get<Cert>(`${bankServerUrl}/cert/${username}`)
+      setCert(response.data)
+    }
+
     getAuctionData();
+    getUserCert();
   }, []);
 
 
@@ -71,20 +85,16 @@ export default function AuctionPage() {
       setError(signature) // remove this at some point
 
       // send bid details to zkvm
-      const bidDetails = {
-        bank_details: {
-          cert: {
-            balance: 100,
-            date: "today",
-            client_public_key: publicKey
-          },
-          bank_sig: bank_sig_hex,
-          bank_public_key,
-        },
-        bid: pendingBidAmount,
-        challenge: challenge,
-        signed_challenge: signature
-      };
+      // const bidDetails = {
+      //   bank_details: {
+      //     cert,
+      //     bank_sig: bank_sig_hex,
+      //     bank_public_key,
+      //   },
+      //   bid: pendingBidAmount,
+      //   challenge: challenge,
+      //   signed_challenge: signature
+      // };
 
     } catch (error) {
       console.error("Error during signing or verification:", error)
@@ -241,3 +251,4 @@ export default function AuctionPage() {
   )
 }
 
+export default AuctionPage

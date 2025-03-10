@@ -2,7 +2,6 @@ from flask import Flask, jsonify, request
 from flask_socketio import SocketIO, emit, join_room
 from flask_cors import CORS
 from init_db import init_db
-import sqlite3
 import os
 from services.auction_services import get_all_auctions, get_auction, create_auction
 from services.challenge_services import create_challenge
