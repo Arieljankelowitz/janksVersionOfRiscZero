@@ -3,3 +3,9 @@ export interface Cert {
     date: string;
     client_public_key: string;
 }
+
+export interface BankDetails {
+    cert: Cert;
+    bank_sig: string;
+    bank_public_key: string;
+}

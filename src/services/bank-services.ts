@@ -9,7 +9,7 @@ const hashPassword = async (password: string): Promise<string> => {
   return hashedPassword;
 };
 
-export const signup = (username: string, password: string, balance: string) => {
+export const signup = async (username: string, password: string, balance: string) => {
   // TODO finish this function (hit the signup endpoint on the bank server)
   try {
     const hashedPassword = hashPassword(password)
@@ -21,4 +21,8 @@ export const signup = (username: string, password: string, balance: string) => {
     return null
   }
 
+}
+
+export const login = async (username: string, password: string) => {
+  // login via api return username
 }

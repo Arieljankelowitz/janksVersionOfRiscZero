@@ -73,13 +73,11 @@ def signup():
     conn.commit()
     conn.close()
 
-    cert = create_cert(username)
-
     # Return the private key for the user to save
     return jsonify({
         "message": "User registered successfully", 
-        "cert": cert,
         "private_key": private_key,
+        "username": username
     })
 
 
@@ -91,6 +89,12 @@ def login():
 @app.route('/api/cert/<userId>', methods=['GET'])
 def get_cert(userId):
     # TODO generate a cert for the username requesting
+    # {
+    #     balance,
+    #     date,
+    #     client_public_key
+    # }
+    # return the signed cert as well and the bank public key
     pass
 
 if __name__ == '__main__':

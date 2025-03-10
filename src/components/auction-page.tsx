@@ -13,9 +13,9 @@ import {
 } from "@/components/ui/dialog"
 import { fetchAuction, fetchChallenge } from "@/services/auction-services"
 import { AuctionItem } from "@/types/auction-types"
-import { signChallenge } from "@/services/rust-services"
+import { signChallenge, submitBid } from "@/services/rust-services"
 import axios from "axios"
-import { Cert } from "@/types/bank-types"
+import { BankDetails, Cert } from "@/types/bank-types"
 
 interface AuctionPageProps {
   username: string;
@@ -32,7 +32,7 @@ const AuctionPage: React.FC<AuctionPageProps> = ({ username }) => {
   const [pendingBidAmount, setPendingBidAmount] = useState<number | null>(null)
   const [auctionData, setAuctionData] = useState<AuctionItem | null>(null)
   const [error, setError] = useState("");  // To show errors
-  const [cert, setCert] = useState<Cert | null>(null)
+  const [bank_details, setBankDetails] = useState<BankDetails | null>(null)
   const bankServerUrl = "http://127.0.0.1:5000/api"
 
   useEffect(() => {
@@ -43,8 +43,8 @@ const AuctionPage: React.FC<AuctionPageProps> = ({ username }) => {
     };
 
     const getUserCert = async () => {
-      const response = await axios.get<Cert>(`${bankServerUrl}/cert/${username}`)
-      setCert(response.data)
+      const response = await axios.get<BankDetails>(`${bankServerUrl}/cert/${username}`)
+      setBankDetails(response.data)
     }
 
     getAuctionData();
@@ -85,20 +85,18 @@ const AuctionPage: React.FC<AuctionPageProps> = ({ username }) => {
       setError(signature) // remove this at some point
 
       // send bid details to zkvm
-      // const bidDetails = {
-      //   bank_details: {
-      //     cert,
-      //     bank_sig: bank_sig_hex,
-      //     bank_public_key,
-      //   },
-      //   bid: pendingBidAmount,
-      //   challenge: challenge,
-      //   signed_challenge: signature
-      // };
+      const bidDetails = {
+        bank_details,
+        bid: pendingBidAmount,
+        challenge: challenge,
+        signed_challenge: signature
+      };
+
+      const bidReceipt = submitBid(bidDetails)
+      // somehow connect to websocket and submit the bid also prob need to connect to websocket above look into it
 
     } catch (error) {
-      console.error("Error during signing or verification:", error)
-      setError(`Error: ${error}`);
+      setError(`${error}`);
       setIsSubmitting(false)
     }
   }
@@ -179,8 +177,6 @@ const AuctionPage: React.FC<AuctionPageProps> = ({ username }) => {
               Maximum suggested bid: <span className="font-medium">${(currentBid * 1.5).toFixed(2)}</span>
             </div>
           </div>
-          {/* Show error message */}
-          {error && <p style={{ color: 'red' }}>{error}</p>}
         </CardFooter>
       </Card>
 
@@ -230,6 +226,7 @@ const AuctionPage: React.FC<AuctionPageProps> = ({ username }) => {
               <p className="text-xs text-muted-foreground">
                 Your secret key is never stored and only used to sign this challenge.
               </p>
+              {error && <p className="text-xs text-muted-foreground text-red-500">{error}</p>}
             </div>
           </div>
 

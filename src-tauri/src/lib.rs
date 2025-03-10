@@ -17,17 +17,29 @@ struct FundAccountDetails {
     client_public_key: String,
 }
 
-// Define the Tauri command to handle the fund account
 #[command]
-fn sign_challenge(challenge: String, private_key: String) -> String {
-    let private_key_bytes = hex::decode(private_key).expect("Invalid hex string");
-    let signing_key = SigningKey::from_slice(&private_key_bytes).expect("couldn't create signing key");
+fn sign_challenge(challenge: String, private_key: String) -> Result<String, String> {
+    // Try to decode the private key from hex
+    let private_key_bytes = match hex::decode(&private_key) {
+        Ok(bytes) => bytes,
+        Err(_) => return Err("Invalid hex string".to_string()),
+    };
 
+    // Try to create the signing key
+    let signing_key = match SigningKey::from_slice(&private_key_bytes) {
+        Ok(key) => key,
+        Err(_) => return Err("Couldn't create signing key".to_string()),
+    };
+
+    // Try to sign the challenge
     let signature: Signature = signing_key.sign(challenge.as_bytes());
+    
+    // Convert signature to hex and return the result
     let signature_hex = hex::encode(signature.to_bytes());
-
-    return signature_hex
+    
+    Ok(signature_hex)
 }
+
 
 // Define the Tauri command to handle the bid details
 #[tauri::command]
