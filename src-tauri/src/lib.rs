@@ -1,10 +1,13 @@
 use tauri::command;
-use reqwest::Client;
 use bidding_core::BidDetails;  // Importing BidDetails
 use serde::{Serialize, Deserialize};
 use serde_json;
 use std::error::Error;
-use host::run_zkvm;  // Assuming run_zkvm is your existing function
+use host::run_zkvm;  
+use k256::{
+    ecdsa::{SigningKey, Signature, signature::Signer}
+};
+use hex;
 
 // Struct to hold the fund account details
 #[derive(Serialize, Deserialize)]
@@ -16,28 +19,14 @@ struct FundAccountDetails {
 
 // Define the Tauri command to handle the fund account
 #[command]
-async fn handle_fund_account(details: FundAccountDetails) -> Result<serde_json::Value, String> {
-    let client = Client::new();
-    let url = "http://127.0.0.1:5000/api/sign_bid"; // Flask server URL
+fn sign_challenge(challenge: String, private_key: String) -> String {
+    let private_key_bytes = hex::decode(private_key).expect("Invalid hex string");
+    let signing_key = SigningKey::from_slice(&private_key_bytes).expect("couldn't create signing key");
 
-    // Make the POST request to the Flask API
-    let response = client
-        .post(url)
-        .json(&details)
-        .send()
-        .await
-        .map_err(|e| e.to_string())?;
+    let signature: Signature = signing_key.sign(challenge.as_bytes());
+    let signature_hex = hex::encode(signature.to_bytes());
 
-    // Check if the request was successful
-    if response.status().is_success() {
-        let json_response = response.json::<serde_json::Value>()
-            .await
-            .map_err(|e| e.to_string())?;
-        
-        Ok(json_response)
-    } else {
-        Err("Error funding the account".to_string())
-    }
+    return signature_hex
 }
 
 // Define the Tauri command to handle the bid details
@@ -67,7 +56,7 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![handle_bid_details, handle_fund_account]) // Fixed syntax here
+        .invoke_handler(tauri::generate_handler![handle_bid_details, sign_challenge]) // add functions here
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

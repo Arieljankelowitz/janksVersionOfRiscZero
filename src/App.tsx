@@ -6,8 +6,8 @@ import ConnectionTest from './components/connection-test';
 function App() {
   return (
     <div className="app-container">
-      {/* <AuctionPage /> */}
-      <ConnectionTest />
+      <AuctionPage />
+      {/* <ConnectionTest /> */}
     </div>
   );
 }

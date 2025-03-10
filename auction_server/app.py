@@ -97,6 +97,6 @@ def handle_place_bid(data):
         emit('error', {'message': 'Bid must be higher than current bid.'})
 
 if __name__ == '__main__':
-    print("Auction API starting on http://127.0.0.1:5000")
+    print("Auction API starting on http://127.0.0.1:5001")
     print("Database file:", os.path.abspath(DB_PATH))
     socketio.run(app, host='127.0.0.1', port=5001, debug=True)
