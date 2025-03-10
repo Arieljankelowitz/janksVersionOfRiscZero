@@ -12,25 +12,24 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import { Check, Copy } from "lucide-react"
+import { signup } from "@/services/bank-services"
 
-export default function AuthPage() {
+interface AuthPageProps {
+    setLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
+    setUsername: React.Dispatch<React.SetStateAction<string>>;
+}
+
+const AuthPage: React.FC<AuthPageProps> = ({ setLoggedIn, setUsername }) => {
     const [isLogin, setIsLogin] = useState(true)
     const [showKeyModal, setShowKeyModal] = useState(false)
     const [privateKey, setPrivateKey] = useState("")
     const [copied, setCopied] = useState(false)
+    const [password, setPassword] = useState("");
+    const [balance, setBalance] = useState("");
+    const [user, setUser] = useState("")
 
     const toggleView = () => {
         setIsLogin(!isLogin)
-    }
-
-    const generatePrivateKey = () => {
-        // This is just a mock private key for demonstration
-        const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-        let result = ""
-        for (let i = 0; i < 64; i++) {
-            result += characters.charAt(Math.floor(Math.random() * characters.length))
-        }
-        return result
     }
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -38,14 +37,19 @@ export default function AuthPage() {
 
         if (!isLogin) {
             // For registration, generate a private key and show the modal
-            const newKey = generatePrivateKey()
-            setPrivateKey(newKey)
+            const { username, privateKey } = signup(user, password, balance) as { username: string; privateKey: string };
+            setPrivateKey(privateKey)
+            setUsername(username)
             setShowKeyModal(true)
         } else {
             // For login, you would typically handle authentication here
             console.log("Login submitted")
+            //TODO add api to login
+            setUsername(user)
+            setLoggedIn(true)
             // Redirect or handle login success
         }
+
     }
 
     const copyToClipboard = () => {
@@ -58,9 +62,13 @@ export default function AuthPage() {
         }, 2000)
     }
 
+    const closeModal = () => {
+        setShowKeyModal(false)
+        setLoggedIn(true)
+    }
     return (
-        <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
-            <Card className="w-full max-w-md">
+        <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12">
+            <Card className="w-[350px]">
                 <CardHeader className="space-y-1">
                     <CardTitle className="text-2xl font-bold text-center">{isLogin ? "Login" : "Register"}</CardTitle>
                     <CardDescription className="text-center">
@@ -71,17 +79,38 @@ export default function AuthPage() {
                     <form className="space-y-4" onSubmit={handleSubmit}>
                         <div className="space-y-2">
                             <Label htmlFor="username">Username</Label>
-                            <Input id="username" placeholder={isLogin ? "Enter your username" : "Choose a username"} required />
+                            <Input
+                                id="username"
+                                value={user}
+                                onChange={(e) => setUser(e.target.value)}
+                                placeholder={isLogin ? "Enter your username" : "Choose a username"}
+                                required
+                            />
                         </div>
+
                         <div className="space-y-2">
                             <Label htmlFor="password">Password</Label>
-                            <Input id="password" type="password" placeholder="••••••••" required />
+                            <Input
+                                id="password"
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="••••••••"
+                                required
+                            />
                         </div>
 
                         {!isLogin && (
                             <div className="space-y-2">
                                 <Label htmlFor="balance">Initial Balance</Label>
-                                <Input id="balance" type="number" placeholder="0.00" required />
+                                <Input
+                                    id="balance"
+                                    type="number"
+                                    value={balance}
+                                    onChange={(e) => setBalance(e.target.value)}
+                                    placeholder="0.00"
+                                    required
+                                />
                             </div>
                         )}
 
@@ -122,7 +151,7 @@ export default function AuthPage() {
                         </Button>
                     </div>
                     <DialogFooter>
-                        <Button type="button" onClick={() => setShowKeyModal(false)} className="w-full">
+                        <Button type="button" onClick={closeModal} className="w-full">
                             I've Saved My Key
                         </Button>
                     </DialogFooter>
@@ -132,3 +161,4 @@ export default function AuthPage() {
     )
 }
 
+export default AuthPage

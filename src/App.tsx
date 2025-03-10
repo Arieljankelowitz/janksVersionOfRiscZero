@@ -1,17 +1,18 @@
 import './App.css';
-import { useState } from 'react';
+import { SetStateAction, useState } from 'react';
 import AuctionPage from './components/auction-page';
 import ConnectionTest from './components/connection-test';
 import AuthPage from './components/auth-page';
 
 function App() {
-  const [loggedIn, setLoggedIn] = useState(true)
+  const [loggedIn, setLoggedIn] = useState(false)
+  const [username, setUsername] = useState("")
 
   return (
     <div className="app-container">
       {loggedIn ?
-        <AuctionPage username={''} />
-        : <AuthPage />}
+        <AuctionPage username={username} />
+        : <AuthPage setLoggedIn={setLoggedIn} setUsername={setUsername} />}
 
       {/* <ConnectionTest /> */}
     </div>

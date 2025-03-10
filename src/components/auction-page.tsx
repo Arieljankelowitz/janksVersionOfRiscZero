@@ -174,7 +174,7 @@ const AuctionPage: React.FC<AuctionPageProps> = ({ username }) => {
         </CardContent>
         <CardFooter className="bg-muted/50 p-4 text-sm text-muted-foreground">
           <div className="flex justify-between w-full">
-            <div>Item #A12345</div>
+            <div>Welcome {username}</div>
             <div>
               Maximum suggested bid: <span className="font-medium">${(currentBid * 1.5).toFixed(2)}</span>
             </div>
