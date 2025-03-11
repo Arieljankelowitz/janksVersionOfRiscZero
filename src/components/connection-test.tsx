@@ -5,23 +5,24 @@ function ConnectionTest() {
     const [receipt, setReceipt] = useState("");
     const [error, setError] = useState("");  // To show errors
 
-    const privateKey = "4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318";
-    const publicKey = "044e3b81af9c2234cad09d679ce6035ed1392347ce64ce405f5dcd36228a25de6e47fd35c4215d1edf53e6f83de344615ce719bdb0fd878f6ed76f06dd277956de";
+    const clientKey = "04377573c25ec4dd83cc006827f5ff9c4b2eca01db5189ad9cae8e9b90d49e953ea0ddfab13201e7729b4faadd1c3dd6cc0ef7f10b702fab632b157b98d098f159";
+    const publicKey = "04b2566f5e2e052591b0f82be9f5fdb87f976340e7217b629949141062fc9a05ea15a7b43d0ed7669b1a2004074bb85c7c3394a9a95f5c26a0e662346bca4ee3d8";
     const bank_public_key = publicKey;  // Corrected to use the public key defined earlier
-    const bank_sig_hex = "437496313c2182d9b1c37471e2394d9254a753c705b353801c39f0f5a922c4af0a0ac0d8e19041afff9dfeb1c639906d9199329633e49e88c5702b6e4a8883b3";
+    const bank_sig_hex = "34fc93e8089bc84a3e2f11cb6cb9983541622502b51562be412e9b7974846555cb9b2dbc816e3525ad9768aee7e617c368e972d92ecd633d5f74ceb2cdaec408";
     const signed_challenge_hex = "BD13AC123219902DAC8154CF560A4DF5F990242EC040BC34E60FB5C96B1E776A72159ED282BD9B1B8F609DC58E8AD2E90352240FF53A9FBC448D22D67086B157";
+    const date = "2025-03-11T22:18:51.954595Z"
 
     const bidDetails = {
         bank_details: {
             cert: {
-                balance: 100,
-                date: "today",
-                client_public_key: publicKey
+                balance: 200,
+                client_public_key: clientKey,
+                date,
             },
             bank_sig: bank_sig_hex,
             bank_public_key,
         },
-        bid: 1000,
+        bid: 10,
         challenge: "sign me",
         signed_challenge: signed_challenge_hex
     };

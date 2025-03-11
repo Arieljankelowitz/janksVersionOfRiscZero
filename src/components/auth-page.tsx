@@ -57,13 +57,16 @@ const AuthPage: React.FC<AuthPageProps> = ({ setLoggedIn, setUsername }) => {
 
         } else {
             // For login, you would typically handle authentication here
-            const username = await login(user, password)
-            if (username) {
-                setUsername(username)
-                setLoggedIn(true)
-            }
-            else {
-                setError("Username or password is incorrect. Please try again.")
+            try {
+                const username = await login(user, password);
+                if (username) {
+                    setUsername(username);
+                    setLoggedIn(true);
+
+                }
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+                setError(`Unable to register. Error: ${errorMessage}`);
             }
         }
 

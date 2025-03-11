@@ -39,8 +39,9 @@ fn main() {
     match bank_verifying_key
         .verify(&cert_bytes, &input.bank_details.bank_sig) {
             Ok(_) => {},
-            Err(_) => {
-                env::write(&"Bank signature is not valid.".to_string());
+            Err(e) => {
+                let error_message = format!("Bank signature verification failed: {}", e);
+                env::write(&error_message);
                 env::exit(1);
             }
         };

@@ -49,6 +49,10 @@ export const login = async (username: string, password: string) => {
       
     return response.data.username
   } catch (error) {
-    return null
+    if (error instanceof Error) {
+      throw new Error(error.message); // Re-throws the error with the same message
+    } else {
+      throw new Error('An unknown error occurred');
+    }
   }
 }

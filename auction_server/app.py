@@ -20,7 +20,7 @@ init_db(DB_PATH)
 
 @app.route('/', methods=['GET'])
 def home():
-    sum = verifier.test("yY4QbuXYeeJSrwVQh1nvl5VJ2OFjuCIg")
+    # sum = verifier.test("yY4QbuXYeeJSrwVQh1nvl5VJ2OFjuCIg")
     bid = verifier.verify_receipt(receipt)
     return jsonify({"message": sum, "bid": bid})
 
@@ -71,12 +71,24 @@ def handle_place_bid(data):
     auction_id = data.get('auction_id')
     receipt = data.get('receipt')
 
+    def write_to_file(file_path: str, data: str):
+        try:
+            with open(file_path, 'w', encoding='utf-8') as file:
+                file.write(data)
+                print("File written successfully")
+        except Exception as e:
+            print(f"Error writing to file: {e}")
 
-    # bid = verify_receipt(receipt) # create function that wraps rust
-    bid = 160 # TODO get rid of this and change to  verify receipt
-    if not bid:
-        emit('error', {'message': 'Bid not valid'})
-        return
+    write_to_file("receipt.txt", receipt)
+
+    # try:
+    bid = verifier.verify_receipt(receipt)
+    # except Exception as e:
+    #     # Handle the exception, print the error or do something else
+    #     emit('error', {'message': f"Error verifying receipt: {e}"})
+    #     return
+    # bid = 160 # TODO get rid of this and change to  verify receipt
+
 
     auction = get_auction(DB_PATH, auction_id) #write function
     

@@ -19,6 +19,7 @@ import { BankDetails, Cert } from "@/types/bank-types"
 import { io, Socket } from 'socket.io-client';
 import { LogOut } from "lucide-react"
 
+
 interface AuctionPageProps {
   username: string;
   setLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
@@ -138,10 +139,16 @@ const AuctionPage: React.FC<AuctionPageProps> = ({ username, setLoggedIn }) => {
         challenge: challenge,
         signed_challenge: signature
       };
-
+      // setError(JSON.stringify(bidDetails, null, 2)) //remove
       const bidReceipt = await submitBid(bidDetails)
 
+      if ((bidReceipt as string).startsWith("Error")) {
+        throw new Error(bidReceipt as string);
+      }
+
       placeBid(bidReceipt)
+      setIsSubmitting(false)
+      handleModalClose()
 
     } catch (error) {
       setError(`${error}`);
@@ -314,7 +321,7 @@ const AuctionPage: React.FC<AuctionPageProps> = ({ username, setLoggedIn }) => {
               <p className="text-xs text-muted-foreground">
                 Your secret key is never stored and only used to sign this challenge.
               </p>
-              {error && <p className="text-xs text-muted-foreground text-red-500">{error}</p>}
+              {error && <pre className="text-xs text-muted-foreground text-red-500">{error}</pre>}
             </div>
           </div>
 

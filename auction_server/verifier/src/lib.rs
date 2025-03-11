@@ -3,11 +3,11 @@ use pyo3::exceptions::PyRuntimeError;
 use serde::{Serialize, Deserialize};
 use serde_json;
 use std::fs::File;
-use std::io::Write;
 use std::io::BufReader;
 use bincode;
 use risc0_zkvm::Receipt;
 use rusqlite::{params, Connection, Result};
+use k256::EncodedPoint;
 
 #[derive(Serialize, Deserialize, Debug)]
 struct Data {
@@ -48,26 +48,35 @@ fn challenge_exists(db_path: &str, challenge: &str) -> Result<bool, rusqlite::Er
 #[pyfunction]
 fn verify_receipt(receipt_string: String) -> PyResult<u32> {
     let guest_id = read_id_file()
-        .map_err(|e| PyRuntimeError::new_err(format!("IO error: {}", e)))?;
+        .map_err(|e| PyRuntimeError::new_err(format!("IO error: {}", e)))?;    
+
+    // Pad the receipt string if its length is odd
+    let padded_receipt_string = if receipt_string.len() % 2 != 0 {
+        format!("0{}", receipt_string)
+    } else {
+        receipt_string
+    };
 
     // Parse Receipt
-    let receipt_bytes = hex::decode(&receipt_string)
+    let receipt_bytes = hex::decode(&padded_receipt_string)
         .map_err(|e| PyRuntimeError::new_err(format!("Hex decode error: {}", e)))?;
 
     let receipt: Receipt = bincode::deserialize(&receipt_bytes)
         .map_err(|e| PyRuntimeError::new_err(format!("Deserialize error: {}", e)))?;
+    
     // Verify Receipt
     receipt
         .verify(guest_id)
         .map_err(|e| PyRuntimeError::new_err(format!("Verify error: {}", e)))?;
-    
+
     let output: ReceiptOutput = receipt.journal.decode()
         .map_err(|e| PyRuntimeError::new_err(format!("Decode error: {}", e)))?;
 
     let bid: u32 = output.bid;
-    
+
     Ok(bid)
 }
+
 
 
 #[pyfunction]

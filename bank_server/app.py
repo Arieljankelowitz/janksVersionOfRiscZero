@@ -2,14 +2,9 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 import sqlite3
 import os
-import binascii
 from datetime import datetime
 from ecdsa import SECP256k1, SigningKey
 from ecdsa.util import sigencode_der
-
-from cryptography.hazmat.primitives import serialization
-import json
-import base64
 from init_db import init_db
 from ecdsa import SECP256k1, SigningKey
 from ecdsa.util import sigencode_string
@@ -17,12 +12,13 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature
 import binascii
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import ec
 import base64
 import json
-from cryptography.hazmat.primitives import serialization
+
+
 def load_or_create_bank_keys():
     """Load the bank's private and public keys, or generate new ones if they don't exist."""
     bank_private_key_path = 'bank_private_key.pem'
@@ -56,26 +52,31 @@ def load_or_create_bank_keys():
 
     return bank_private_key, bank_public_key
 
+
 def sign_cert(cert, private_key, public_key):
-    """Sign the cert with the bank's private key using SECP256k1 (k256) signature"""
-    
-    # Convert the cert dict to JSON bytes (use sorted keys to ensure consistency)
+    """Sign the cert with the bank's private key using SECP256k1 (k256) signature in raw 64-byte format"""
+    print(cert)
+    # Convert the cert dict to JSON bytes (sorted keys for consistency)
     cert_bytes = json.dumps(cert, sort_keys=True).encode('utf-8')
 
-    # Sign the certificate using the bank's private key (SECP256k1)
-    signature = private_key.sign(cert_bytes, ec.ECDSA(hashes.SHA256()))
+    # Sign the certificate using SECP256K1 + SHA256
+    der_signature = private_key.sign(cert_bytes, ec.ECDSA(hashes.SHA256()))
 
-    # Serialize the bank's public key to hex (uncompressed point)
+    # Convert DER-encoded signature to raw 64-byte format (r || s)
+    r, s = decode_dss_signature(der_signature)
+    raw_signature = r.to_bytes(32, byteorder='big') + s.to_bytes(32, byteorder='big')
+
+    # Serialize the public key in uncompressed format (X9.62)
     bank_pub_bytes = public_key.public_bytes(
         encoding=serialization.Encoding.X962,
         format=serialization.PublicFormat.UncompressedPoint
     )
-    bank_pub_hex = base64.b64encode(bank_pub_bytes).decode('utf-8')
+    bank_pub_hex = bank_pub_bytes.hex()
 
-    # Return the signed certificate with the bank's signature
+    # Return the signed certificate with the raw 64-byte signature in hex format
     return {
         "cert": cert,
-        "bank_sig": base64.b64encode(signature).decode('utf-8'),
+        "bank_sig": raw_signature.hex(),  # Now in raw 64-byte format
         "bank_public_key": bank_pub_hex
     }
 # TODO move to another file to clean code up
@@ -130,8 +131,8 @@ def create_cert(username):
 
     cert = {
         "balance": balance,
-        "date": current_date,  # Use dynamic current date and time
-        "client_public_key": client_public_key
+        "client_public_key": client_public_key,
+        "date": current_date # Use dynamic current date and time
     }
 
     # Generate the bank's keys if not done yet (or load from files)
@@ -203,9 +204,7 @@ def login():
 
     return jsonify({
         "message": "Login successful",
-    
-        "public_key": public_key,
-        "balance": balance
+        "username": username
     })
 
 
@@ -232,8 +231,8 @@ def get_cert(userId):
 
     cert = {
         "balance": balance,
-        "date": current_date,  # Use dynamic current date and time
-        "client_public_key": client_public_key
+        "client_public_key": client_public_key,
+        "date": current_date  # Use dynamic current date and time
     }
 
     # Generate the bank's keys if not done yet (or load from files)

@@ -8,8 +8,8 @@ use k256::{
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Cert {
     pub balance: u32,
-    pub date: String, // Keep as String maybe change later prob not
     pub client_public_key: EncodedPoint,
+    pub date: String, // Keep as String maybe change later prob not
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
