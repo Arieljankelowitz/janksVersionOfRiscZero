@@ -1,6 +1,7 @@
 import sqlite3
 
 def init_db(DB_PATH):
+    print(f"Initializing database at {DB_PATH}")
     """Initialize the database with required tables"""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
