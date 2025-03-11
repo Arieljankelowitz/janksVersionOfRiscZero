@@ -12,7 +12,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import { Check, Copy } from "lucide-react"
-import { signup } from "@/services/bank-services"
+import { login, signup } from "@/services/bank-services"
 
 interface AuthPageProps {
     setLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
@@ -25,29 +25,40 @@ const AuthPage: React.FC<AuthPageProps> = ({ setLoggedIn, setUsername }) => {
     const [privateKey, setPrivateKey] = useState("")
     const [copied, setCopied] = useState(false)
     const [password, setPassword] = useState("");
-    const [balance, setBalance] = useState("");
+    const [balance, setBalance] = useState(""); // used only for registration
     const [user, setUser] = useState("")
+    const [error, setError] = useState("")
 
     const toggleView = () => {
         setIsLogin(!isLogin)
     }
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
 
         if (!isLogin) {
             // For registration, generate a private key and show the modal
-            const { username, privateKey } = signup(user, password, balance) as { username: string; privateKey: string };
-            setPrivateKey(privateKey)
-            setUsername(username)
-            setShowKeyModal(true)
+            const signupResponse = await signup(user, password, balance);
+            setError("Unable to register. Please try again.");
+            if (signupResponse && signupResponse.username && signupResponse.privateKey) {
+                setPrivateKey(signupResponse.privateKey);
+                setUsername(signupResponse.username);
+                setShowKeyModal(true);
+                setLoggedIn(true)
+            } else {
+                setError("Unable to register. Please try again.");
+            }
+
         } else {
             // For login, you would typically handle authentication here
-            console.log("Login submitted")
-            //TODO add api to login
-            setUsername(user)
-            setLoggedIn(true)
-            // Redirect or handle login success
+            const username = await login(user, password)
+            if (username) {
+                setUsername(username)
+                setLoggedIn(true)
+            }
+            else {
+                setError("Username or password is incorrect. Please try again.")
+            }
         }
 
     }
@@ -125,6 +136,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ setLoggedIn, setUsername }) => {
                         <Button variant="link" className="p-0 h-auto font-medium text-primary" onClick={toggleView}>
                             {isLogin ? "Register" : "Login"}
                         </Button>
+                        {error && <p className="text-xs text-muted-foreground text-red-500">{error}</p>}
                     </p>
                 </CardFooter>
             </Card>

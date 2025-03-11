@@ -22,3 +22,14 @@ export const submitBid = async (bidDetails: any) => {
         throw new Error(`Failed to run ZKVM: ${err}`);
     }
 };
+
+
+export const hashPassword = async (password: string) => {
+    try {
+        const hashedPassword = await invoke('hash_password', {password})
+
+        return hashedPassword
+    } catch (err) {
+        throw new Error(`Failed to run hash password: ${err}`);
+    }
+}

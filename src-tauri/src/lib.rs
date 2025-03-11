@@ -5,7 +5,8 @@ use serde_json;
 use std::error::Error;
 use host::run_zkvm;  
 use k256::{
-    ecdsa::{SigningKey, Signature, signature::Signer}
+    ecdsa::{SigningKey, Signature, signature::Signer},
+    sha2::{Sha256, Digest}
 };
 use hex;
 
@@ -53,6 +54,16 @@ fn handle_bid_details(details: BidDetails) -> String {
     }
 }
 
+#[tauri::command]
+fn hash_password(password: String) -> String {
+    
+    let mut hasher = Sha256::new();
+    hasher.update(password.as_bytes());
+    let result = hasher.finalize();
+    
+    format!("{:x}", result)
+}
+
 
 // The main entry point to run the Tauri app
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -68,7 +79,7 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![handle_bid_details, sign_challenge]) // add functions here
+        .invoke_handler(tauri::generate_handler![handle_bid_details, sign_challenge, hash_password]) // add functions here
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

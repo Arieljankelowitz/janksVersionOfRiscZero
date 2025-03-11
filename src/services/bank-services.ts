@@ -1,21 +1,26 @@
 import axios from "axios"
+import { hashPassword } from "./rust-services"
 
 const bankServerUrl = "http://127.0.0.1:5000/api"
-
-
-const hashPassword = async (password: string): Promise<string> => {
-  // TODO hash the password
-  const hashedPassword = password 
-  return hashedPassword;
-};
 
 export const signup = async (username: string, password: string, balance: string) => {
   // TODO finish this function (hit the signup endpoint on the bank server)
   try {
-    const hashedPassword = hashPassword(password)
-  
-    const response = axios.post(`${bankServerUrl}/signup`)
-    const privateKey = " " // change to response.data.privateKey
+    const hashedPassword = await hashPassword(password)
+    const registerData = {
+      username, 
+      password: hashedPassword,
+      balance
+    }
+    const response = await axios.post(`${bankServerUrl}/signup`, registerData, 
+      {
+      headers: {
+          'Content-Type': 'application/json',
+        }
+      })
+    
+    const privateKey = response.data.privateKey
+
     return { username, privateKey }
   } catch (error) {
     return null
@@ -24,5 +29,22 @@ export const signup = async (username: string, password: string, balance: string
 }
 
 export const login = async (username: string, password: string) => {
-  // login via api return username
+  try {
+    const hashedPassword = await hashPassword(password)
+    const loginData = {
+      username, 
+      password: hashedPassword,
+    }
+
+    const response = await axios.post(`${bankServerUrl}/login`, loginData, 
+      {
+      headers: {
+          'Content-Type': 'application/json',
+        }
+      })
+      
+    return response.data.username
+  } catch (error) {
+    return null
+  }
 }
