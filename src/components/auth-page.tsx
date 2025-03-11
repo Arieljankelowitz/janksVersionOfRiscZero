@@ -38,15 +38,21 @@ const AuthPage: React.FC<AuthPageProps> = ({ setLoggedIn, setUsername }) => {
 
         if (!isLogin) {
             // For registration, generate a private key and show the modal
-            const signupResponse = await signup(user, password, balance);
-            setError("Unable to register. Please try again.");
-            if (signupResponse && signupResponse.username && signupResponse.privateKey) {
+            try {
+                const signupResponse = await signup(user, password, balance);
+
+                // Ensure signupResponse contains the expected properties
+                if (!signupResponse || !signupResponse.username || !signupResponse.privateKey) {
+                    throw new Error("Signup response is missing required properties.");
+                }
+
                 setPrivateKey(signupResponse.privateKey);
                 setUsername(signupResponse.username);
                 setShowKeyModal(true);
-                setLoggedIn(true)
-            } else {
-                setError("Unable to register. Please try again.");
+            } catch (error) {
+                // Handle the error, whether it's from the API call or the missing properties
+                const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+                setError(`Unable to register. Error: ${errorMessage}`);
             }
 
         } else {

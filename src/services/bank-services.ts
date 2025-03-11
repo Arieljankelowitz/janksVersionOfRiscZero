@@ -19,13 +19,17 @@ export const signup = async (username: string, password: string, balance: string
         }
       })
     
-    const privateKey = response.data.privateKey
+    const privateKey = response.data.private_key
 
     return { username, privateKey }
+    
   } catch (error) {
-    return null
+    if (error instanceof Error) {
+      throw new Error(error.message); // Re-throws the error with the same message
+    } else {
+      throw new Error('An unknown error occurred');
+    }
   }
-
 }
 
 export const login = async (username: string, password: string) => {
