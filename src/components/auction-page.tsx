@@ -11,18 +11,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { fetchAuction, fetchChallenge } from "@/services/auction-services"
-import { AuctionItem } from "@/types/auction-types"
+import { daysUntilEnd, fetchAuction, fetchChallenge } from "@/services/auction-services"
+import { AuctionItem, BidUpdate, ErrorMessage } from "@/types/auction-types"
 import { signChallenge, submitBid } from "@/services/rust-services"
 import axios from "axios"
 import { BankDetails, Cert } from "@/types/bank-types"
+import { io, Socket } from 'socket.io-client';
+import { LogOut } from "lucide-react"
 
 interface AuctionPageProps {
   username: string;
+  setLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const AuctionPage: React.FC<AuctionPageProps> = ({ username }) => {
-  const [currentBid, setCurrentBid] = useState(150)
+const AuctionPage: React.FC<AuctionPageProps> = ({ username, setLoggedIn }) => {
+  const [currentBid, setCurrentBid] = useState(150) // setup websocket to auto update 
   const [bidAmount, setBidAmount] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -33,22 +36,66 @@ const AuctionPage: React.FC<AuctionPageProps> = ({ username }) => {
   const [auctionData, setAuctionData] = useState<AuctionItem | null>(null)
   const [error, setError] = useState("");  // To show errors
   const [bank_details, setBankDetails] = useState<BankDetails | null>(null)
+  const [connected, setConnected] = useState<boolean>(false);
+  const [socket, setSocket] = useState<Socket | null>(null);
+
   const bankServerUrl = "http://127.0.0.1:5000/api"
+  const auctionServerUrl = 'http://127.0.0.1:5001'
+  const auctionId = '2'
+
+  // Initialize socket connection
+  useEffect(() => {
+    // Create socket connection
+    const newSocket: Socket = io(auctionServerUrl);
+
+    // Set up event handlers
+    newSocket.on('connect', () => {
+      console.log('Connected to WebSocket server');
+      setConnected(true);
+    });
+
+    newSocket.on('disconnect', () => {
+      console.log('Disconnected from WebSocket server');
+      setConnected(false);
+    });
+
+    // Listen for bid updates
+    newSocket.on('bid_update', (data: BidUpdate) => {
+      if (data.auction_id === auctionId) {
+        console.log(`New bid received: $${data.new_bid}`);
+        setCurrentBid(data.new_bid);
+      }
+    });
+
+    // Listen for error messages
+    newSocket.on('error', (data: ErrorMessage) => {
+      setError(data.message);
+      setTimeout(() => setError(''), 5000); // Clear error after 5 seconds
+    });
+
+    // Store socket in state
+    setSocket(newSocket);
+
+    // Cleanup on component unmount
+    return () => {
+      newSocket.disconnect();
+    };
+  }, []);
 
   useEffect(() => {
     const getAuctionData = async () => {
-      const data = await fetchAuction();
+      const data = await fetchAuction(auctionId);
       setAuctionData(data);
       setCurrentBid(data?.bid || 0)
     };
 
-    const getUserCert = async () => {
+    const getBankDetails = async () => {
       const response = await axios.get<BankDetails>(`${bankServerUrl}/cert/${username}`)
       setBankDetails(response.data)
     }
 
     getAuctionData();
-    getUserCert();
+    getBankDetails();
   }, []);
 
 
@@ -92,8 +139,9 @@ const AuctionPage: React.FC<AuctionPageProps> = ({ username }) => {
         signed_challenge: signature
       };
 
-      const bidReceipt = submitBid(bidDetails)
-      // somehow connect to websocket and submit the bid also prob need to connect to websocket above look into it
+      const bidReceipt = await submitBid(bidDetails)
+
+      placeBid(bidReceipt)
 
     } catch (error) {
       setError(`${error}`);
@@ -111,17 +159,50 @@ const AuctionPage: React.FC<AuctionPageProps> = ({ username }) => {
     }
   }
 
+  const placeBid = (receipt: any): void => {
+    if (!socket || !connected) {
+      setError('Socket not connected');
+      return;
+    }
+
+    if (!receipt.trim()) {
+      setError('Receipt cannot be empty');
+      return;
+    }
+
+    try {
+      socket.emit('place_bid', {
+        auction_id: auctionId,
+        receipt: receipt
+      });
+
+    } catch (error) {
+      console.error('Error placing bid:', error);
+      setError('Failed to place bid');
+    }
+  };
+
+  const onLogout = () => {
+    setLoggedIn(false)
+  }
+
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <Card className="overflow-hidden">
         <CardHeader className="pb-4">
-          <CardTitle className="text-2xl md:text-3xl">{auctionData?.title}</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-2xl md:text-3xl">{auctionData?.title}</CardTitle>
+            <Button variant="ghost" size="sm" onClick={onLogout} className="text-muted-foreground hover:text-foreground">
+              <LogOut className="h-4 w-4 mr-2" />
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="p-0">
           <div className="grid md:grid-cols-2 gap-6">
             <div className="relative aspect-square">
               <img
-                src="/placeholder.svg?height=600&width=600"
+                src={auctionData?.img_url}
                 alt="Vintage Leather Armchair"
                 className="object-cover"
               />
@@ -137,7 +218,7 @@ const AuctionPage: React.FC<AuctionPageProps> = ({ username }) => {
               <div className="mb-6">
                 <h2 className="text-xl font-semibold mb-2">Current Bid</h2>
                 <p className="text-3xl font-bold text-primary">${currentBid.toFixed(2)}</p>
-                <p className="text-sm text-muted-foreground mt-1">Auction ends in 2 days, 4 hours</p>
+                <p className="text-sm text-muted-foreground mt-1">{daysUntilEnd(auctionData?.end_date ?? "")}</p>
               </div>
 
               <form onSubmit={handleBidSubmit}>
@@ -172,9 +253,16 @@ const AuctionPage: React.FC<AuctionPageProps> = ({ username }) => {
         </CardContent>
         <CardFooter className="bg-muted/50 p-4 text-sm text-muted-foreground">
           <div className="flex justify-between w-full">
-            <div>Welcome {username}</div>
+            <div className="flex items-center gap-2">
+              Welcome {username}
+              <span
+                className={`inline-block w-2 h-2 rounded-full ${connected ? "bg-green-500" : "bg-red-500"}`}
+                title={connected ? "Connected" : "Disconnected"}
+              />
+              <span className="text-xs text-muted-foreground">{connected ? "Online" : "Offline"}</span>
+            </div>
             <div>
-              Maximum suggested bid: <span className="font-medium">${(currentBid * 1.5).toFixed(2)}</span>
+              Maximum allowed bid: <span className="font-medium">${bank_details?.cert.balance ? bank_details.cert.balance.toString() : '0'}</span>
             </div>
           </div>
         </CardFooter>

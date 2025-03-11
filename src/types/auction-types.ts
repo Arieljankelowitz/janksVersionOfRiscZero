@@ -11,3 +11,12 @@ export interface AuctionItem {
 export interface Challenge {
     challenge: string;
 }
+
+export interface BidUpdate {
+    auction_id: string;
+    new_bid: number;
+}
+
+export interface ErrorMessage {
+    message: string;
+}

@@ -3,7 +3,7 @@ from flask_socketio import SocketIO, emit, join_room
 from flask_cors import CORS
 from init_db import init_db
 import os
-from services.auction_services import get_all_auctions, get_auction, create_auction
+from services.auction_services import get_all_auctions, get_auction, create_auction, update_auction_bid
 from services.challenge_services import create_challenge
 import verifier
 from reciept import receipt
@@ -58,10 +58,10 @@ def get_challenge():
 @socketio.on('connect')
 def handle_connect():
     print('User connected')
-    
+    auctions = get_all_auctions(DB_PATH)
     # Join all auction rooms
-    for auction_id in auctions.keys():
-        join_room(f'auction_{auction_id}')
+    for auction in auctions:
+        join_room(f'auction_{auction["id"]}')
     
     emit('joined_auctions', {'success': True})
 
@@ -72,19 +72,20 @@ def handle_place_bid(data):
     receipt = data.get('receipt')
 
 
-    bid = verify_receipt(receipt) # create function that wraps rust
+    # bid = verify_receipt(receipt) # create function that wraps rust
+    bid = 160 # TODO get rid of this and change to  verify receipt
     if not bid:
         emit('error', {'message': 'Bid not valid'})
         return
 
-    auction = get_auction(auction_id) #write function
+    auction = get_auction(DB_PATH, auction_id) #write function
     
     if not auction:
         emit('error', {'message': 'Auction not found'})
         return
 
     if bid > auction['bid']:
-        auction['bid'] = bid
+        update_auction_bid(DB_PATH, auction_id, bid)
         print(f"Auction {auction_id} new bid: ${bid}")
         # Broadcast to everyone in this auction room
         socketio.emit(
@@ -92,6 +93,7 @@ def handle_place_bid(data):
             {'auction_id': auction_id, 'new_bid': bid},
             room=f'auction_{auction_id}'
         )
+
     else:
         emit('error', {'message': 'Bid must be higher than current bid.'})
 

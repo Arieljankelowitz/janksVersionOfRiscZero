@@ -71,3 +71,13 @@ def create_auction(DB_PATH, data):
     
     conn.commit()
     conn.close()
+
+
+def update_auction_bid(DB_PATH, auction_id, new_bid):
+    """Update the bid of an auction by its ID"""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute("UPDATE auctions SET bid = ? WHERE id = ?", (new_bid, auction_id))
+    conn.commit()
+    conn.close()
