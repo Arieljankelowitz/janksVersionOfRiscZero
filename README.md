@@ -1,50 +1,94 @@
-# React + TypeScript + Vite
+# Installation Guide for ZeroBid (Linux & macOS)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Prerequisites
+Ensure you have the following dependencies installed before proceeding:
 
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
-
-- Configure the top-level `parserOptions` property like this:
-
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+### 1. Install Rust
+```sh
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source $HOME/.cargo/env
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+### 2. Install Python
+Install Python using your package manager:
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
-
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
+**macOS (Homebrew):**
+```sh
+brew install python3
 ```
+
+**Linux (Debian-based):**
+```sh
+sudo apt update && sudo apt install python3 python3-pip -y
+```
+
+**Linux (Arch-based):**
+```sh
+sudo pacman -S python python-pip
+```
+
+### 3. Install Node.js
+**Using nvm (recommended):**
+```sh
+curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.4/install.sh | bash
+source ~/.bashrc  # or source ~/.zshrc if using zsh
+nvm install --lts
+```
+
+**Alternative (macOS - Homebrew):**
+```sh
+brew install node
+```
+
+**Alternative (Linux - Debian-based):**
+```sh
+sudo apt install nodejs npm
+```
+
+### 4. Install Risc0
+```sh
+curl -L https://risczero.com/install | bash
+rzup install cargo-risczero v1.2.2
+```
+
+---
+
+## Project Setup
+
+### 1. Clone the Repository
+```sh
+git clone https://vcs.ap.runi.ac.il/applied-crypto/project-ZeroBid/
+cd project-ZeroBid
+```
+
+### 2. Install Node.js Dependencies
+```sh
+npm install
+```
+
+### 3. Start Bank Server
+```sh
+cd bank_server
+pip install -r requirements.txt
+python app.py
+```
+
+### 4. Start Auction Server
+Open a **new terminal** and run:
+```sh
+cd auction_server
+pip install -r requirements.txt
+cd verifier
+maturin develop
+cd ..
+python app.py
+```
+
+### 5. Start Tauri App
+Open another **new terminal** and run:
+```sh
+npx tauri dev
+```
+
+Your project should now be running successfully!
+
