@@ -46,7 +46,7 @@ fn sign_challenge(challenge: String, private_key: String) -> Result<String, Stri
 #[tauri::command]
 fn handle_bid_details(details: BidDetails) -> String {
     match run_zkvm(details) {
-        Ok(val) => format!("Success: {}", val),
+        Ok(val) => format!("{}", val),
         Err(e) => {
             // If there's an error, return the error message, no receipt is committed.
             format!("Error: {}", e)

@@ -81,12 +81,12 @@ def handle_place_bid(data):
 
     write_to_file("receipt.txt", receipt)
 
-    # try:
-    bid = verifier.verify_receipt(receipt)
-    # except Exception as e:
-    #     # Handle the exception, print the error or do something else
-    #     emit('error', {'message': f"Error verifying receipt: {e}"})
-    #     return
+    try:
+        bid = verifier.verify_receipt(receipt)
+    except Exception as e:
+        # Handle the exception, print the error or do something else
+        emit('error', {'message': f"Error verifying receipt: {e}"})
+        return
     # bid = 160 # TODO get rid of this and change to  verify receipt
 
 

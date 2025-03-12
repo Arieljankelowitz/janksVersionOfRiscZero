@@ -11,12 +11,12 @@ function App() {
 
   return (
     <div className="app-container">
-      {/* {loggedIn ?
+      {loggedIn ?
         <AuctionPage username={username} setLoggedIn={setLoggedIn} />
-        : <AuthPage setLoggedIn={setLoggedIn} setUsername={setUsername} />} */}
+        : <AuthPage setLoggedIn={setLoggedIn} setUsername={setUsername} />}
       {/* <AuctionPage username={username} setLoggedIn={setLoggedIn} /> */}
       {/* <AuctionDetail auctionId={'1'} /> */}
-      <ConnectionTest />
+      {/* <ConnectionTest /> */}
     </div>
   );
 }

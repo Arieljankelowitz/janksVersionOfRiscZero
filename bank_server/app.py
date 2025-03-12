@@ -55,10 +55,9 @@ def load_or_create_bank_keys():
 
 def sign_cert(cert, private_key, public_key):
     """Sign the cert with the bank's private key using SECP256k1 (k256) signature in raw 64-byte format"""
-    print(cert)
     # Convert the cert dict to JSON bytes (sorted keys for consistency)
-    cert_bytes = json.dumps(cert, sort_keys=True).encode('utf-8')
-
+    cert_bytes = json.dumps(cert, sort_keys=True, ensure_ascii=True, separators=(',', ':')).encode('utf-8')    
+    print(cert_bytes)
     # Sign the certificate using SECP256K1 + SHA256
     der_signature = private_key.sign(cert_bytes, ec.ECDSA(hashes.SHA256()))
 
@@ -230,8 +229,8 @@ def get_cert(userId):
     current_date = datetime.utcnow().isoformat() + "Z"
 
     cert = {
-        "balance": balance,
-        "client_public_key": client_public_key,
+        "balance": int(balance),
+        "client_public_key": client_public_key.upper(),
         "date": current_date  # Use dynamic current date and time
     }
 

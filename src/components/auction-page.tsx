@@ -71,7 +71,6 @@ const AuctionPage: React.FC<AuctionPageProps> = ({ username, setLoggedIn }) => {
     // Listen for error messages
     newSocket.on('error', (data: ErrorMessage) => {
       setError(data.message);
-      setTimeout(() => setError(''), 5000); // Clear error after 5 seconds
     });
 
     // Store socket in state
@@ -99,6 +98,11 @@ const AuctionPage: React.FC<AuctionPageProps> = ({ username, setLoggedIn }) => {
     getBankDetails();
   }, []);
 
+
+  async function waitOneSecond() {
+    await new Promise(resolve => setTimeout(resolve, 100));
+    console.log("Waited 1 second");
+  }
 
   // Initial validation and modal opening
   const handleBidSubmit = async (e: React.FormEvent) => {
@@ -130,8 +134,6 @@ const AuctionPage: React.FC<AuctionPageProps> = ({ username, setLoggedIn }) => {
       // sign the challenge
       const signature = await signChallenge(challenge, secretKey)
 
-      setError(signature) // remove this at some point
-
       // send bid details to zkvm
       const bidDetails = {
         bank_details,
@@ -139,6 +141,8 @@ const AuctionPage: React.FC<AuctionPageProps> = ({ username, setLoggedIn }) => {
         challenge: challenge,
         signed_challenge: signature
       };
+
+      await waitOneSecond()
       // setError(JSON.stringify(bidDetails, null, 2)) //remove
       const bidReceipt = await submitBid(bidDetails)
 
@@ -177,16 +181,11 @@ const AuctionPage: React.FC<AuctionPageProps> = ({ username, setLoggedIn }) => {
       return;
     }
 
-    try {
-      socket.emit('place_bid', {
-        auction_id: auctionId,
-        receipt: receipt
-      });
+    socket.emit('place_bid', {
+      auction_id: auctionId,
+      receipt: receipt
+    });
 
-    } catch (error) {
-      console.error('Error placing bid:', error);
-      setError('Failed to place bid');
-    }
   };
 
   const onLogout = () => {

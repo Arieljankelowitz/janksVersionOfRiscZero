@@ -33,6 +33,7 @@ fn main() {
             env::exit(1);
         }
     };
+
     let cert_bytes: Vec<u8> = cert_string.into_bytes();
 
     // Verify the signature of the bank 

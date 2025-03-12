@@ -66,7 +66,7 @@ fn main() {
         signed_challenge,
     };
    
-
+    println!("{:?}", BIDDING_GUEST_ID);
     // For example:
     let input: BidDetails = bid_details;
     let env = ExecutorEnv::builder()
