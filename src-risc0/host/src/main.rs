@@ -11,7 +11,6 @@ use k256::{
 };
 use hex::{ encode, decode };
 
-
 fn main() {
     // Initialize tracing. In order to view logs, run `RUST_LOG=info cargo run`
     tracing_subscriber::fmt()
@@ -47,7 +46,6 @@ fn main() {
     // Create the `bankCert` equivalent in Rust
     let bank_cert = Cert {
         balance: 1000,
-        date: "2025-01-30".to_string(),
         client_public_key,
     };
 

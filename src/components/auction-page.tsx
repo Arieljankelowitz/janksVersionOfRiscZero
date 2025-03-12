@@ -15,7 +15,7 @@ import { daysUntilEnd, fetchAuction, fetchChallenge } from "@/services/auction-s
 import { AuctionItem, BidUpdate, ErrorMessage } from "@/types/auction-types"
 import { signChallenge, submitBid } from "@/services/rust-services"
 import axios from "axios"
-import { BankDetails, Cert } from "@/types/bank-types"
+import { BankDetails } from "@/types/bank-types"
 import { io, Socket } from 'socket.io-client';
 import { LogOut } from "lucide-react"
 
@@ -39,6 +39,7 @@ const AuctionPage: React.FC<AuctionPageProps> = ({ username, setLoggedIn }) => {
   const [bank_details, setBankDetails] = useState<BankDetails | null>(null)
   const [connected, setConnected] = useState<boolean>(false);
   const [socket, setSocket] = useState<Socket | null>(null);
+  const [bidDetailsTest, setBidDetails] = useState(""); // remove
 
   const bankServerUrl = "http://127.0.0.1:5000/api"
   const auctionServerUrl = 'http://127.0.0.1:5001'
@@ -84,15 +85,24 @@ const AuctionPage: React.FC<AuctionPageProps> = ({ username, setLoggedIn }) => {
 
   useEffect(() => {
     const getAuctionData = async () => {
-      const data = await fetchAuction(auctionId);
-      setAuctionData(data);
-      setCurrentBid(data?.bid || 0)
+      try {
+        const data = await fetchAuction(auctionId);
+        setAuctionData(data);
+        setCurrentBid(data?.bid || 0);
+      } catch (error) {
+        setError(`Error fetching auction data: ${error}`);
+      }
     };
 
     const getBankDetails = async () => {
-      const response = await axios.get<BankDetails>(`${bankServerUrl}/cert/${username}`)
-      setBankDetails(response.data)
-    }
+      try {
+        const response = await axios.get<BankDetails>(`${bankServerUrl}/cert/${username}`);
+        setBankDetails(response.data);
+      } catch (error) {
+        setError(`Error fetching cert: ${error}`);
+      }
+    };
+
 
     getAuctionData();
     getBankDetails();
@@ -101,7 +111,6 @@ const AuctionPage: React.FC<AuctionPageProps> = ({ username, setLoggedIn }) => {
 
   async function waitOneSecond() {
     await new Promise(resolve => setTimeout(resolve, 100));
-    console.log("Waited 1 second");
   }
 
   // Initial validation and modal opening
@@ -143,7 +152,7 @@ const AuctionPage: React.FC<AuctionPageProps> = ({ username, setLoggedIn }) => {
       };
 
       await waitOneSecond()
-      // setError(JSON.stringify(bidDetails, null, 2)) //remove
+      setBidDetails(JSON.stringify(bidDetails, null, 2)) //remove
       const bidReceipt = await submitBid(bidDetails)
 
       if ((bidReceipt as string).startsWith("Error")) {
@@ -167,6 +176,8 @@ const AuctionPage: React.FC<AuctionPageProps> = ({ username, setLoggedIn }) => {
       setSecretKey("")
       setChallenge("")
       setPendingBidAmount(null)
+      setBidAmount("")
+      setIsModalOpen(false)
     }
   }
 
@@ -219,6 +230,7 @@ const AuctionPage: React.FC<AuctionPageProps> = ({ username, setLoggedIn }) => {
                 <p className="text-muted-foreground">
                   {auctionData?.description}
                 </p>
+                <pre>{bidDetailsTest}</pre>
               </div>
 
               <div className="mb-6">

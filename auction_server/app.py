@@ -6,7 +6,6 @@ import os
 from services.auction_services import get_all_auctions, get_auction, create_auction, update_auction_bid
 from services.challenge_services import create_challenge
 import verifier
-from reciept import receipt
 
 app = Flask(__name__)
 CORS(app)
@@ -20,9 +19,8 @@ init_db(DB_PATH)
 
 @app.route('/', methods=['GET'])
 def home():
-    # sum = verifier.test("yY4QbuXYeeJSrwVQh1nvl5VJ2OFjuCIg")
-    bid = verifier.verify_receipt(receipt)
-    return jsonify({"message": sum, "bid": bid})
+    return jsonify({"message": "Auction API is running"})
+
 
 @app.route('/api/auction', methods=['POST'])
 def upload_auction():
@@ -71,26 +69,14 @@ def handle_place_bid(data):
     auction_id = data.get('auction_id')
     receipt = data.get('receipt')
 
-    def write_to_file(file_path: str, data: str):
-        try:
-            with open(file_path, 'w', encoding='utf-8') as file:
-                file.write(data)
-                print("File written successfully")
-        except Exception as e:
-            print(f"Error writing to file: {e}")
-
-    write_to_file("receipt.txt", receipt)
-
     try:
-        bid = verifier.verify_receipt(receipt)
+        bid = verifier.verify_receipt(receipt   )
     except Exception as e:
         # Handle the exception, print the error or do something else
         emit('error', {'message': f"Error verifying receipt: {e}"})
         return
-    # bid = 160 # TODO get rid of this and change to  verify receipt
 
-
-    auction = get_auction(DB_PATH, auction_id) #write function
+    auction = get_auction(DB_PATH, auction_id)
     
     if not auction:
         emit('error', {'message': 'Auction not found'})
@@ -98,7 +84,7 @@ def handle_place_bid(data):
 
     if bid > auction['bid']:
         update_auction_bid(DB_PATH, auction_id, bid)
-        print(f"Auction {auction_id} new bid: ${bid}")
+        
         # Broadcast to everyone in this auction room
         socketio.emit(
             'bid_update',

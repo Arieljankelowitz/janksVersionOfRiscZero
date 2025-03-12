@@ -1,22 +1,11 @@
 use tauri::command;
 use bidding_core::BidDetails;  // Importing BidDetails
-use serde::{Serialize, Deserialize};
-use serde_json;
-use std::error::Error;
 use host::run_zkvm;  
 use k256::{
     ecdsa::{SigningKey, Signature, signature::Signer},
     sha2::{Sha256, Digest}
 };
 use hex;
-
-// Struct to hold the fund account details
-#[derive(Serialize, Deserialize)]
-struct FundAccountDetails {
-    balance: f64,
-    date: String,
-    client_public_key: String,
-}
 
 #[command]
 fn sign_challenge(challenge: String, private_key: String) -> Result<String, String> {

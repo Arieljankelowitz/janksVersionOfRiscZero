@@ -1,8 +1,6 @@
 import sqlite3
 import random
 import string
-import time
-import json
 
 def create_challenge(DB_PATH):
     """Get all auctions"""

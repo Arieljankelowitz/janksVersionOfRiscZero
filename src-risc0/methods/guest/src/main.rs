@@ -66,12 +66,9 @@ fn main() {
     };
 
     
-    // verify date is today (maybe)
-
-    // output: challenge, date, bid, banks public key
+    // output: challenge, bid, banks public key
     let output = ReceiptOutput {
         challenge: input.challenge.clone(),
-        date: input.bank_details.cert.date.clone(),
         bid: input.bid.clone(),
         bank_public_key: input.bank_details.bank_public_key.clone()
     };

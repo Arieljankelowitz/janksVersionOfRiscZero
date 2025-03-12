@@ -9,7 +9,6 @@ use k256::{
 pub struct Cert {
     pub balance: u32,
     pub client_public_key: EncodedPoint,
-    pub date: String, // Keep as String maybe change later prob not
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -31,6 +30,5 @@ pub struct BidDetails {
 pub struct ReceiptOutput {
     pub bid: u32,
     pub challenge: String,
-    pub date: String, // Keep as String maybe change later prob not
     pub bank_public_key: EncodedPoint,
 }

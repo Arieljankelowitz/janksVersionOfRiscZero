@@ -1,21 +1,24 @@
 use methods::{
-    BIDDING_GUEST_ELF, BIDDING_GUEST_ID
+    BIDDING_GUEST_ELF
 };
 use risc0_zkvm::{default_prover, ExecutorEnv, ProverOpts, serde::from_slice};
-use bidding_core::{BidDetails, ReceiptOutput};
-use k256::{
-    ecdsa::{SigningKey, Signature, signature::Signer, VerifyingKey}, 
-    EncodedPoint
-};
+use bidding_core::{BidDetails};
 use bincode;
 use hex;
 use std::error::Error;
+use serde_json;
 
  
 pub fn run_zkvm(details: BidDetails) -> Result<String, Box<dyn Error>> {
     let mut output = Vec::new();
-    // For example:
-    let input: BidDetails = details;
+    let input: BidDetails = details.clone();
+
+    // remove 
+    let cert_string = serde_json::to_string(&details.bank_details.cert)
+      .expect("couldn't put it in a string");
+    let cert_bytes: Vec<u8> = cert_string.into_bytes();
+    println!("{:?}", &cert_bytes);
+
     let env = ExecutorEnv::builder()
         .write(&input)?
         .stdout(&mut output)
@@ -26,10 +29,9 @@ pub fn run_zkvm(details: BidDetails) -> Result<String, Box<dyn Error>> {
     let prover_opts = ProverOpts::succinct(); // can be changed to composite or groth16(only works on x86)
 
     // Proof information by proving the specified ELF binary.
-    // This struct contains the receipt along with statistics about execution of the guest
     let prove_info = prover
         .prove_with_opts(env, BIDDING_GUEST_ELF, &prover_opts)
-        .map_err(|e| {
+        .map_err(|_e| {
             let output_slice: String = from_slice(&output).unwrap();
             output_slice
         })?;
@@ -37,10 +39,7 @@ pub fn run_zkvm(details: BidDetails) -> Result<String, Box<dyn Error>> {
     // extract the receipt.
     let receipt = prove_info.receipt;
 
-    // TODO: Implement code for retrieving receipt journal here.
-
-    // let output: ReceiptOutput = receipt.journal.decode().unwrap();
-    
+    // turn the string into a string to send to user
     let receipt_bytes = bincode::serialize(&receipt)?;
     let receipt_string = hex::encode(&receipt_bytes);
 
