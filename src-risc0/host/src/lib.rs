@@ -1,5 +1,5 @@
 use methods::{
-    BIDDING_GUEST_ELF
+    BIDDING_GUEST_ELF,BIDDING_GUEST_ID
 };
 use risc0_zkvm::{default_prover, ExecutorEnv, ProverOpts, serde::from_slice};
 use bidding_core::{BidDetails};
@@ -18,6 +18,7 @@ pub fn run_zkvm(details: BidDetails) -> Result<String, Box<dyn Error>> {
       .expect("couldn't put it in a string");
     let cert_bytes: Vec<u8> = cert_string.into_bytes();
     println!("{:?}", &cert_bytes);
+    println!("{:?}", BIDDING_GUEST_ID);
 
     let env = ExecutorEnv::builder()
         .write(&input)?

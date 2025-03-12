@@ -230,7 +230,7 @@ const AuctionPage: React.FC<AuctionPageProps> = ({ username, setLoggedIn }) => {
                 <p className="text-muted-foreground">
                   {auctionData?.description}
                 </p>
-                <pre>{bidDetailsTest}</pre>
+                {/* <pre>{bidDetailsTest}</pre> */}
               </div>
 
               <div className="mb-6">

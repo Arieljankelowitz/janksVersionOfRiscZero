@@ -66,7 +66,9 @@ fn main() {
     };
 
     
-    // output: challenge, bid, banks public key
+    // verify date is today (maybe)
+
+    // output: challenge, date, bid, banks public key
     let output = ReceiptOutput {
         challenge: input.challenge.clone(),
         bid: input.bid.clone(),

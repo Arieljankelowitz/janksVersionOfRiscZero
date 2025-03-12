@@ -1,11 +1,8 @@
 import os
 from cryptography.hazmat.primitives.asymmetric import ec
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature
-import binascii
 import json
+from bank_server import sign_cert as rust_sign_cert
 
 def load_or_create_bank_keys():
     """Load the bank's private and public keys, or generate new ones if they don't exist."""
@@ -40,33 +37,25 @@ def load_or_create_bank_keys():
 
     return bank_private_key, bank_public_key
 
-
 def sign_cert(cert, private_key, public_key):
-    """Sign the cert with the bank's private key using SECP256k1 (k256) signature in raw 64-byte format"""
-
-    # Convert the cert dict to JSON bytes
-    cert_bytes = json.dumps(cert, sort_keys=True, ensure_ascii=True, separators=(',', ':')).encode('utf-8')    
-    print(cert_bytes) # remove
-    # Sign the certificate using SECP256K1 + SHA256
-    der_signature = private_key.sign(cert_bytes, ec.ECDSA(hashes.SHA256()))
-
-    # Convert DER-encoded signature to raw 64-byte format (r || s)
-    r, s = decode_dss_signature(der_signature)
-    raw_signature = r.to_bytes(32, byteorder='big') + s.to_bytes(32, byteorder='big')
-
+    """Sign the cert with the bank's private key using Rust implementation"""
+    
+    # Convert the cert dict to ensure it's JSON serializable
+    cert_dict = json.loads(json.dumps(cert))
+    
+    # Extract the raw private key
+    private_bytes = private_key.private_numbers().private_value.to_bytes(32, byteorder='big')
+    
     # Serialize the public key in uncompressed format (X9.62)
-    bank_pub_bytes = public_key.public_bytes(
+    public_bytes = public_key.public_bytes(
         encoding=serialization.Encoding.X962,
         format=serialization.PublicFormat.UncompressedPoint
     )
-    bank_pub_hex = bank_pub_bytes.hex()
-
-    # Return the signed certificate with the raw 64-byte signature in hex format
-    return {
-        "cert": cert,
-        "bank_sig": raw_signature.hex(),  # Now in raw 64-byte format
-        "bank_public_key": bank_pub_hex
-    }
+    
+    # Call the Rust implementation
+    result = rust_sign_cert(cert_dict, private_bytes, public_bytes)
+    
+    return result
 
 def generate_key_pair():
     """Generate a SECP256K1 key pair and return the private and public keys in raw hex format"""
@@ -80,13 +69,13 @@ def generate_key_pair():
     private_bytes = private_key.private_numbers().private_value.to_bytes(32, byteorder='big')
     
     # Convert to hex
-    private_hex = binascii.hexlify(private_bytes).decode('ascii')
+    private_hex = private_bytes.hex()
     
     # Serialize the public key to bytes and convert to hex
     public_bytes = public_key.public_bytes(
         encoding=serialization.Encoding.X962,
         format=serialization.PublicFormat.UncompressedPoint
     )
-    public_hex = binascii.hexlify(public_bytes).decode('ascii')
+    public_hex = public_bytes.hex()
     
     return private_hex, public_hex

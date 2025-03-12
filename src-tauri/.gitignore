@@ -5,3 +5,4 @@
 # Add ignored paths
 /core/target/
 *.pem
+/bank_server/target/
