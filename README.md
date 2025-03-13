@@ -70,6 +70,7 @@ npm install
 ```sh
 cd bank_server
 pip install -r requirements.txt
+maturin develop
 python app.py
 ```
 
@@ -89,6 +90,21 @@ Open another **new terminal** and run:
 ```sh
 npx tauri dev
 ```
-
 Your project should now be running successfully!
+
+## Troubleshooting
+
+### Array Synchronization Issue
+
+If you notice that the array output in the terminal when running the application doesn't match the array stored in `auction_server/guest_id.json`, you need to manually synchronize them:
+
+1. Check the array displayed in the terminal output
+2. Open the `auction_server/guest_id.json` file
+3. Update the contents of the JSON file to match exactly what's shown in the terminal output
+4. Save the file
+
+This synchronization is important to maintain data consistency across the application. Mismatches between these arrays can cause unexpected behavior, including authentication issues and incorrect data association.
+
+This ensures that all registered guest IDs are properly tracked by the application.
+
 

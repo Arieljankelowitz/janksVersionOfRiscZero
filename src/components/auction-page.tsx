@@ -263,7 +263,7 @@ const AuctionPage: React.FC<AuctionPageProps> = ({ username, setLoggedIn }) => {
       <div className="container mx-auto px-4 py-8 max-w-5xl">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-xl font-semibold text-gray-900">Anonymous Auction Platform</h1>
+          <h1 className="text-xl font-semibold text-gray-900">ZeroBid Anonymous Auction</h1>
           <div className="flex items-center gap-3">
             <div className="flex items-center space-x-1 text-sm text-gray-600">
               <span>Hello, {username}</span>
