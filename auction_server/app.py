@@ -3,7 +3,7 @@ from flask_socketio import SocketIO, emit, join_room
 from flask_cors import CORS
 from init_db import init_db
 import os
-from services.auction_services import get_all_auctions, get_auction, create_auction, update_auction_bid
+from services.auction_services import get_all_auctions, get_auction, create_auction, update_auction_bid, update_winning_receipt
 from services.challenge_services import create_challenge
 import verifier
 
@@ -70,7 +70,7 @@ def handle_place_bid(data):
     receipt = data.get('receipt')
 
     try:
-        bid = verifier.verify_receipt(receipt   )
+        bid = verifier.verify_receipt(receipt)
     except Exception as e:
         # Handle the exception, print the error or do something else
         emit('error', {'message': f"Error verifying receipt: {e}"})
@@ -84,6 +84,7 @@ def handle_place_bid(data):
 
     if bid > auction['bid']:
         update_auction_bid(DB_PATH, auction_id, bid)
+        update_winning_receipt(DB_PATH, auction_id, receipt)
         
         # Broadcast to everyone in this auction room
         socketio.emit(

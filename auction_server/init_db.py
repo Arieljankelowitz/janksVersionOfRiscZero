@@ -14,6 +14,7 @@ def init_db(DB_PATH):
         description TEXT NOT NULL,
         end_date TEXT NOT NULL,
         bid REAL NOT NULL,
+        winning_receipt TEXT
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     ''')

@@ -6,18 +6,12 @@ use bidding_core::{BidDetails};
 use bincode;
 use hex;
 use std::error::Error;
-use serde_json;
 
  
 pub fn run_zkvm(details: BidDetails) -> Result<String, Box<dyn Error>> {
     let mut output = Vec::new();
-    let input: BidDetails = details.clone();
+    let input: BidDetails = details;
 
-    // remove 
-    let cert_string = serde_json::to_string(&details.bank_details.cert)
-      .expect("couldn't put it in a string");
-    let cert_bytes: Vec<u8> = cert_string.into_bytes();
-    println!("{:?}", &cert_bytes);
     println!("{:?}", BIDDING_GUEST_ID);
 
     let env = ExecutorEnv::builder()
